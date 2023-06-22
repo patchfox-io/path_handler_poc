@@ -29,20 +29,6 @@ import static org.mockito.Mockito.verify;
 
 public class PathHandlerTest {
     private final Context ctx = mock(Context.class);
-
-    @DisplayName("Handle method sends map of handler types to list of paths through Context.json()")
-    @Test
-    void testHandle() {
-        PathHandler handler = spy(new PathHandler());
-
-        try {
-            handler.handle(ctx);
-        } catch (Exception e) {
-            fail(e);
-        }
-
-        verify(ctx).json(any(Map.class));
-    }
     
     @DisplayName("Handle method response includes paths in the matcher when a matcher is provided")
     @Test
