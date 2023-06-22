@@ -1,5 +1,6 @@
 package com.github.jwickham.handlers;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +28,7 @@ public class PathHandler implements Handler {
         PathMatcher matcher = ctx.attribute(MATCHER_KEY);
 
         if (matcher == null || !(matcher instanceof PathMatcher)) {
-            return handlerMap;
+            return getDefaultHandlerMap(ctx);
         }
 
         for (HandlerType handlerType : HandlerType.class.getEnumConstants()) {
@@ -43,6 +44,14 @@ public class PathHandler implements Handler {
             handlerMap.put(handlerType.toString(), stringEntries);
         }
 
+        return handlerMap;
+    }
+
+    private Map<String, List<String>> getDefaultHandlerMap (Context ctx) {
+        Map<String, List<String>> handlerMap = new HashMap<>();
+        String key = ctx.method().toString();
+        List<String> value = Arrays.asList(new String[]{ ctx.path() });
+        handlerMap.put(key, value);
         return handlerMap;
     }
 }

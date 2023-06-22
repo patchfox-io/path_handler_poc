@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -42,9 +44,9 @@ public class PathHandlerTest {
         verify(ctx).json(any(Map.class));
     }
     
-    @DisplayName("Handle method response includes paths in the matcher")
+    @DisplayName("Handle method response includes paths in the matcher when a matcher is provided")
     @Test
-    void testPathMatcher() {
+    void testPathMatcherIsProvided() {
         PathMatcher matcher = new PathMatcher();
         RoutingConfig routingConfig = mock(RoutingConfig.class);
         Set<RouteRole> routeRoles = mock(Set.class);
@@ -70,15 +72,42 @@ public class PathHandlerTest {
         String handlerTypeGET = HandlerType.GET.toString();
         String handlerTypePOST = HandlerType.POST.toString();
         assertTrue(capturedArgument.containsKey(handlerTypeGET));
-        assertTrue(capturedArgument.get(handlerTypeGET) != null);
-        assertTrue(capturedArgument.get(handlerTypeGET).size() == 2);
+        assertNotNull(capturedArgument.get(handlerTypeGET));
+        assertEquals(2, capturedArgument.get(handlerTypeGET).size());
         assertTrue(capturedArgument.get(handlerTypeGET).contains("api"));
         assertTrue(capturedArgument.get(handlerTypeGET).contains("asdf"));
 
         assertTrue(capturedArgument.containsKey(handlerTypePOST));
-        assertTrue(capturedArgument.get(handlerTypePOST) != null);
-        assertTrue(capturedArgument.get(handlerTypePOST).size() == 1);
+        assertNotNull(capturedArgument.get(handlerTypePOST));
+        assertEquals(1, capturedArgument.get(handlerTypePOST).size());
         assertTrue(capturedArgument.get(handlerTypePOST).contains("asdf"));
     }
 
+    @DisplayName("Handle method response includes only this path when a matcher is not provided")
+    @Test
+    void testPathMatcherIsNotProvided() {
+        String path = "/api/foo";
+        HandlerType handlerType = HandlerType.GET;
+        String handlerTypeString = handlerType.toString();
+
+        when(ctx.path()).thenReturn(path);
+        when(ctx.method()).thenReturn(handlerType);
+
+        PathHandler pathHandler = spy(new PathHandler());
+
+        try {
+            pathHandler.handle(ctx);
+        } catch (Exception e) {
+            fail(e);
+        }
+
+        ArgumentCaptor<Map<String, List<String>>> captor = ArgumentCaptor.forClass(Map.class);
+        verify(ctx).json(captor.capture());
+
+        Map<String, List<String>> capturedArgument = captor.getValue();
+        assertTrue(capturedArgument.containsKey(handlerTypeString));
+        assertNotNull(capturedArgument.get(handlerTypeString));
+        assertEquals(1, capturedArgument.get(handlerTypeString).size());
+        assertTrue(capturedArgument.get(handlerTypeString).contains(path));
+    }
 }
